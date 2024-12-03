@@ -78,9 +78,45 @@ def lambda_handler(event, context):
     print("datastr (first 10 chars):", datastr[0:10]) 
 
     #
-    # TODO: get the project id
+    # Open connection to RDS
+    #
+    print("**Opening connection to RDS**") 
+    dbConn = datatier.get_dbConn(rds_endpoint, rds_portnum, rds_username, rds_pwd, rds_dbname)
+
+    #
+    # get user
+    #
+    print("**Retrieving user**")
+    sql = "SELECT * from users WHERE userid = %s;"
+    row = datatier.retrieve_one_row(dbConn, sql, [userid])
+    if len(row) == 0:
+      raise Exception("user not found")
+    print("user:", row)
+    username = row[1]    
+
+    #
+    # get the project id
     # if project does not already exist, create it
     #
+    print("**Retrieving existing project**") 
+    get_projectid_sql = "SELECT * from projects WHERE projectname = %s;"; 
+    row = datatier.retrieve_one_row(dbConn, get_projectid_sql, [projectname])
+    
+    if len(row) == 0:
+      print("**Creating new project**") 
+      bucketfolder = "studyhelper/" + username + "/" + projectname + "/"
+      sql = "INSERT INTO projects (projectname, bucketfolder, userid) VALUES (%s, %s, %s) RETURNING projectid;"
+      # returns number of rows modified
+      _ = datatier.perform_action(dbConn, sql, [projectname, bucketfolder, userid])
+      # get the projectid
+      row = datatier.retrieve_one_row(dbConn, get_projectid_sql, [projectname])
+      if len(row) == 0:
+        raise Exception("something went teribly wrong with creating project")
+      print("**Retrieved project:", row) 
+    else:
+      print("**Retrieved project:", row) 
+    
+    projectid = row[0]
 
     #
     # TODO: upload the file to s3
@@ -103,29 +139,6 @@ def lambda_handler(event, context):
     #
 
     #
-    # open connection to the database:
-    #
-    print("**Opening connection**")
-    
-    dbConn = datatier.get_dbConn(rds_endpoint, rds_portnum, rds_username, rds_pwd, rds_dbname)
-    
-    #
-    # now retrieve all the users:
-    #
-    print("**Retrieving data**")
-
-    #
-    # TODO #1 of 1: write sql query to select all users from the 
-    # users table, ordered by userid
-    #
-    sql = "SELECT * from users ORDER BY userid";
-    
-    rows = datatier.retrieve_all_rows(dbConn, sql)
-    
-    for row in rows:
-      print(row)
-
-    #
     # respond in an HTTP-like way, i.e. with a status
     # code and body in JSON format:
     #
@@ -133,7 +146,7 @@ def lambda_handler(event, context):
     
     return {
       'statusCode': 200,
-      'body': json.dumps(rows)
+      'body': "hello world"
     }
     
   except Exception as err:
