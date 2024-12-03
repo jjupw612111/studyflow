@@ -53,7 +53,7 @@ def lambda_handler(event, context):
     # get body of request:
     # - projectname
     # - filename
-    # - filedata
+    # - data
     #
     print("**Accessing request body**")
     
