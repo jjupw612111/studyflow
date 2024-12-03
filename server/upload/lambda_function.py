@@ -5,6 +5,9 @@
 
 import json
 import boto3
+import uuid
+import pathlib
+import base64
 import os
 import datatier
 
@@ -92,7 +95,7 @@ def lambda_handler(event, context):
     if len(row) == 0:
       raise Exception("user not found")
     print("user:", row)
-    username = row[1]    
+    username = row[3]    
 
     #
     # get the project id
@@ -105,7 +108,7 @@ def lambda_handler(event, context):
     if len(row) == 0:
       print("**Creating new project**") 
       bucketfolder = "studyhelper/" + username + "/" + projectname + "/"
-      sql = "INSERT INTO projects (projectname, bucketfolder, userid) VALUES (%s, %s, %s) RETURNING projectid;"
+      sql = "INSERT INTO projects (projectname, bucketfolder, userid) VALUES (%s, %s, %s);"
       # returns number of rows modified
       _ = datatier.perform_action(dbConn, sql, [projectname, bucketfolder, userid])
       # get the projectid
@@ -119,9 +122,27 @@ def lambda_handler(event, context):
     projectid = row[0]
 
     #
-    # TODO: upload the file to s3
+    # upload the file to s3
     #
 
+    print("**Generating raw bytes**")
+    base64_bytes = datastr.encode()        # string -> base64 bytes
+    bytes = base64.b64decode(base64_bytes) # base64 bytes -> raw bytes
+    
+    print("**Writing local data file**")
+    local_filename = "/tmp/data.pdf"
+    outfile = open(local_filename, "wb")
+    outfile.write(bytes)
+    outfile.close()
+    
+    print("**Generating unique s3 filename**")
+    basename = pathlib.Path(filename).stem
+    extension = pathlib.Path(filename).suffix 
+    if extension != ".pdf" : 
+      raise Exception("expecting filename to have .pdf extension") 
+    s3filename = bucketfolder + basename + "-" + str(uuid.uuid4()) + ".pdf"  
+    print("S3 file name:", s3filename)
+    
     #
     # TODO: upload the file to s3
     #
