@@ -34,6 +34,75 @@ def lambda_handler(event, context):
     rds_dbname = configur.get('rds', 'db_name')
 
     #
+    # get userid from path
+    #
+    print("**Accessing event/pathParameters**")
+
+    if "userid" in event:
+      userid = event["userid"]
+    elif "pathParameters" in event:
+      if "userid" in event["pathParameters"]:
+        userid = event["pathParameters"]["userid"]
+      else:
+        raise Exception("requires userid parameter in pathParameters")
+    else:
+        raise Exception("requires userid parameter in event") 
+    print("userid:", userid)
+    
+    #
+    # get body of request:
+    # - projectname
+    # - filename
+    # - filedata
+    #
+    print("**Accessing request body**")
+    
+    if "body" not in event:
+      raise Exception("event has no body")
+      
+    body = json.loads(event["body"]) # parse the json
+    
+    if "projectname" not in body:
+      raise Exception("event has a body but no projectname")
+    if "filename" not in body:
+      raise Exception("event has a body but no filename")
+    if "data" not in body:
+      raise Exception("event has a body but no data")
+
+    projectname = body["projectname"]
+    filename = body["filename"]
+    datastr = body["data"]
+    
+    print("projectname:", projectname)
+    print("filename:", filename)
+    print("datastr (first 10 chars):", datastr[0:10]) 
+
+    #
+    # TODO: get the project id
+    # if project does not already exist, create it
+    #
+
+    #
+    # TODO: upload the file to s3
+    #
+
+    #
+    # TODO: upload the file to s3
+    #
+
+    #
+    # TODO: update projectdocs table
+    #
+
+    #
+    # TODO: extract text of uploaded file
+    #
+
+    #
+    # TODO: update conversations table
+    #
+
+    #
     # open connection to the database:
     #
     print("**Opening connection**")
