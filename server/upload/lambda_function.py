@@ -37,6 +37,17 @@ def lambda_handler(event, context):
     rds_dbname = configur.get('rds', 'db_name')
 
     #
+    # configure for s3 access
+    #
+    s3_profile = 's3readwrite'
+    boto3.setup_default_session(profile_name=s3_profile)
+    
+    bucketname = configur.get('s3', 'bucket_name')
+    
+    s3 = boto3.resource('s3')
+    bucket = s3.Bucket(bucketname) 
+
+    #
     # get userid from path
     #
     print("**Accessing event/pathParameters**")
@@ -158,9 +169,15 @@ def lambda_handler(event, context):
     print("**Inserted into projectdocs**") 
 
     #
-    # TODO: upload the file to s3
+    # upload the file to s3
     #
-
+    bucket.upload_file(local_filename, 
+                      s3filename, 
+                      ExtraArgs={
+                        'ACL': 'public-read',
+                        'ContentType': 'application/pdf'
+                      })
+    
 
     #
     # TODO: extract text of uploaded file
