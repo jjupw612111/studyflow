@@ -1,6 +1,6 @@
 #
-# Retrieves and returns all the users in the 
-# BenfordApp database.
+# Retrieves and returns all the projects for given userid in the 
+# studyhelper database.
 #
 
 import json
@@ -13,7 +13,7 @@ from configparser import ConfigParser
 def lambda_handler(event, context):
   try:
     print("**STARTING**")
-    print("**lambda: proj03_users**")
+    print("**lambda: studyhelper_projects**")
     
     #
     # setup AWS based on config file:
@@ -33,6 +33,26 @@ def lambda_handler(event, context):
     rds_pwd = configur.get('rds', 'user_pwd')
     rds_dbname = configur.get('rds', 'db_name')
 
+
+    #
+    # userid from event: could be a parameter
+    # or could be part of URL path ("pathParameters"):
+    #
+    print("**Accessing event/pathParameters**")
+    
+    if "userid" in event:
+      userid = event["userid"]
+    elif "pathParameters" in event:
+      if "userid" in event["pathParameters"]:
+        userid = event["pathParameters"]["userid"]
+      else:
+        raise Exception("requires userid parameter in pathParameters")
+    else:
+        raise Exception("requires userid parameter in event")
+        
+    print("userid:", userid)
+  
+
     #
     # open connection to the database:
     #
@@ -41,17 +61,35 @@ def lambda_handler(event, context):
     dbConn = datatier.get_dbConn(rds_endpoint, rds_portnum, rds_username, rds_pwd, rds_dbname)
     
     #
-    # now retrieve all the users:
+    # now retrieve all the projects for one user:
     #
     print("**Retrieving data**")
 
+
     #
-    # TODO #1 of 1: write sql query to select all users from the 
-    # users table, ordered by userid
+    # first we need to make sure the userid is valid:
     #
-    sql = "SELECT * from users ORDER BY userid";
+    print("**Checking if userid is valid**")
     
-    rows = datatier.retrieve_all_rows(dbConn, sql)
+    sql = "SELECT * FROM users WHERE userid = %s;"
+    
+    row = datatier.retrieve_one_row(dbConn, sql, [userid])
+    
+    if row == ():  # no such user
+      print("**No such user, returning...**")
+      return {
+        'statusCode': 400,
+        'body': json.dumps("no such user...")
+      }
+    
+
+    #
+    # write sql query to select all projects from the 
+    # users table, where userid is given
+    #
+    sql = "SELECT * from projects WHERE userid = %s ORDER BY projectid";
+    
+    rows = datatier.retrieve_all_rows(dbConn, sql, [userid])
     
     for row in rows:
       print(row)
