@@ -110,7 +110,9 @@ def lambda_handler(event, context):
       bucketfolder = "studyhelper/" + username + "/" + projectname + "/"
       sql = "INSERT INTO projects (projectname, bucketfolder, userid) VALUES (%s, %s, %s);"
       # returns number of rows modified
-      _ = datatier.perform_action(dbConn, sql, [projectname, bucketfolder, userid])
+      mods = datatier.perform_action(dbConn, sql, [projectname, bucketfolder, userid])
+      if mods == 0:
+        raise Exception("failed to insert row into projects")
       # get the projectid
       row = datatier.retrieve_one_row(dbConn, get_projectid_sql, [projectname])
       if len(row) == 0:
@@ -122,7 +124,7 @@ def lambda_handler(event, context):
     projectid = row[0]
 
     #
-    # upload the file to s3
+    # prepare for s3 upload
     #
 
     print("**Generating raw bytes**")
@@ -144,12 +146,21 @@ def lambda_handler(event, context):
     print("S3 file name:", s3filename)
     
     #
+    # update projectdocs table
+    #
+    print("**Updating projectdocs table**") 
+    sql = """
+      INSERT INTO projectdocs(filename, projectid) VALUES(%s, %s);
+    """
+    mods = datatier.perform_action(dbConn, sql, [s3filename, projectid])
+    if mods == 0:
+      raise Exception("failed to insert row into projectdocs")
+    print("**Inserted into projectdocs**") 
+
+    #
     # TODO: upload the file to s3
     #
 
-    #
-    # TODO: update projectdocs table
-    #
 
     #
     # TODO: extract text of uploaded file
