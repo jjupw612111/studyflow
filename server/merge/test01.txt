@@ -1,1 +1,6 @@
-{}
+{
+  "pathParameters": {
+    "userid": "80003"
+  },
+  "body": "{ \"projectname\": \"homework\" }"
+}
