@@ -1,13 +1,11 @@
 import openai 
 import os
-from dotenv import load_dotenv
+#from dotenv import load_dotenv
+# load_dotenv()
+# openai.api_key = os.getenv("OPENAI_API_KEY")
 
-load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
-
-topics = "rainforest trees, understory, biodiversity"
-
-def openai_sheet_helper(topics, content):
+def openai_sheet_helper(topics, content, api_key):
+  openai.api_key = api_key
   client = openai.OpenAI()
   completion = client.chat.completions.create(
       model="gpt-4o",
