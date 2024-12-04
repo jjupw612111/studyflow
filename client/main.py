@@ -156,7 +156,76 @@ def users(baseurl):
     logging.error("url: " + url)
     logging.error(e)
     return
+  
+############################################################
+#
+# create user
+#
+def createUser(baseurl):
+  """
+  Prompts the user for a email, first name, and last name.
+  Inserts this user into our users table.
 
+  Parameters
+  ----------
+  baseurl: baseurl for web service
+
+  Returns
+  -------
+  userid: the id of the user we just created
+  """
+
+  try:
+    #
+    # Prompt user
+    #
+    print("Enter first name>")
+    firstname = input()
+
+    print("Enter last name>")
+    lastname = input()
+
+    print("Enter email>")
+    email = input()
+
+    #
+    # Call the web service
+    #
+    data = {"email": email, 
+            "lastname": lastname, 
+            "firstname": firstname}
+    api = '/createuser'
+    url = baseurl + api
+    res = web_service_post(url, data)
+
+    #
+    # let's look at what we got back:
+    #
+    if res.status_code == 200: #success
+      pass
+    else: #failed
+      print("Failed with status code:", res.status_code)
+      print("url: " + url)
+      if res.status_code == 500:
+        # we'll have an error message
+        body = res.json()
+        print("Error message:", body)
+      return
+
+    #
+    # success, we get the userid back
+    #
+    body = res.json()
+
+    print("success:", body)
+
+    return body
+
+  except Exception as e:
+    logging.error("**ERROR: upload() failed:")
+    logging.error("url: " + url)
+    logging.error(e)
+    return
 
 ############################################################
 #
@@ -243,7 +312,7 @@ def upload(baseurl):
       return
 
     #
-    # success, extract jobid:
+    # success, we get the filename in s3 back
     #
     body = res.json()
 
