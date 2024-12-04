@@ -63,6 +63,7 @@ def prompt():
     print("   0 => end")
     print("   1 => users")
     print("   2 => upload")
+    print("   3 => create user")
 
     cmd = input()
 
@@ -396,6 +397,8 @@ try:
       users(baseurl)
     elif cmd == 2:
       upload(baseurl)
+    elif cmd == 3:
+      createUser(baseurl)
     else:
       print("** Unknown command, try again...")
     #
