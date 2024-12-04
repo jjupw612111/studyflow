@@ -33,22 +33,11 @@ from configparser import ConfigParser
 # classes
 #
 class User:
-
   def __init__(self, row):
     self.userid = row[0]
-    self.username = row[1]
-    self.pwdhash = row[2]
-
-
-class Job:
-
-  def __init__(self, row):
-    self.jobid = row[0]
-    self.userid = row[1]
-    self.status = row[2]
-    self.originaldatafile = row[3]
-    self.datafilekey = row[4]
-    self.resultsfilekey = row[5]
+    self.email = row[1]
+    self.lastname = row[2]
+    self.firstname = row[3]
 
 
 ###################################################################
@@ -191,11 +180,7 @@ def prompt():
     print(">> Enter a command:")
     print("   0 => end")
     print("   1 => users")
-    print("   2 => jobs")
-    print("   3 => reset database")
-    print("   4 => upload pdf")
-    print("   5 => download results")
-    print("   6 => upload and poll")
+    print("   2 => upload")
 
     cmd = input()
 
@@ -293,143 +278,6 @@ def users(baseurl):
 
 ############################################################
 #
-# jobs
-#
-def jobs(baseurl):
-  """
-  Prints out all the jobs in the database
-
-  Parameters
-  ----------
-  baseurl: baseurl for web service
-
-  Returns
-  -------
-  nothing
-  """
-
-  try:
-    #
-    # call the web service:
-    #
-    api = '/jobs'
-    url = baseurl + api
-
-    # res = requests.get(url)
-    res = web_service_get(url)
-
-    #
-    # let's look at what we got back:
-    #
-    if res.status_code == 200: #success
-      pass
-    else:
-      # failed:
-      print("Failed with status code:", res.status_code)
-      print("url: " + url)
-      if res.status_code == 500:
-        # we'll have an error message
-        body = res.json()
-        print("Error message:", body)
-      #
-      return
-
-    #
-    # deserialize and extract jobs:
-    #
-    body = res.json()
-    #
-    # let's map each row into an Job object:
-    #
-    jobs = []
-    for row in body:
-      job = Job(row)
-      jobs.append(job)
-    #
-    # Now we can think OOP:
-    #
-    if len(jobs) == 0:
-      print("no jobs...")
-      return
-
-    for job in jobs:
-      print(job.jobid)
-      print(" ", job.userid)
-      print(" ", job.status)
-      print(" ", job.originaldatafile)
-      print(" ", job.datafilekey)
-      print(" ", job.resultsfilekey)
-    #
-    return
-
-  except Exception as e:
-    logging.error("**ERROR: jobs() failed:")
-    logging.error("url: " + url)
-    logging.error(e)
-    return
-
-
-############################################################
-#
-# reset
-#
-def reset(baseurl):
-  """
-  Resets the database back to initial state.
-
-  Parameters
-  ----------
-  baseurl: baseurl for web service
-
-  Returns
-  -------
-  nothing
-  """
-
-  try:
-    #
-    # call the web service:
-    #
-    api = '/reset'
-    url = baseurl + api
-
-    res = requests.delete(url)
-
-    #
-    # let's look at what we got back:
-    #
-    if res.status_code == 200: #success
-      pass
-    else:
-      # failed:
-      print("Failed with status code:", res.status_code)
-      print("url: " + url)
-      if res.status_code == 500:
-        # we'll have an error message
-        body = res.json()
-        print("Error message:", body)
-      #
-      return
-
-    #
-    # deserialize and print message
-    #
-    body = res.json()
-
-    msg = body
-
-    print(msg)
-    return
-
-  except Exception as e:
-    logging.error("**ERROR: reset() failed:")
-    logging.error("url: " + url)
-    logging.error(e)
-    return
-
-
-############################################################
-#
 # upload
 #
 def upload(baseurl):
@@ -520,209 +368,6 @@ def upload(baseurl):
 
 
 ############################################################
-#
-# download
-#
-def download(baseurl):
-  """
-  Prompts the user for the job id, and downloads
-  that asset (PDF).
-
-  Parameters
-  ----------
-  baseurl: baseurl for web service
-
-  Returns
-  -------
-  nothing
-  """
-  
-  try:
-    print("Enter job id>")
-    jobid = input()
-    
-    #
-    # call the web service:
-    #
-    url = baseurl + '/results/' + jobid
-    res = web_service_get(url)
-
-    #
-    # let's look at what we got back:
-    #
-    if res.status_code == 200: #success
-      pass
-    elif res.status_code == 400: # no such job
-      body = res.json()
-      print(body)
-      return
-    elif res.status_code in [480, 481, 482]:  # uploaded
-      msg = res.json()
-      print("No results available yet...")
-      print("Job status:", msg)
-      return
-    else:
-      # failed:
-      print("Failed with status code:", res.status_code)
-      print("url: " + url)
-      if res.status_code == 500:
-        # we'll have an error message
-        body = res.json()
-        print("Error message:", body)
-      #
-      return
-      
-    #
-    # if we get here, status code was 200, so we
-    # have results to deserialize and display:
-    #
-     
-    # deserialize the message body:
-    body = res.json()
-    datastr = body
-
-    #
-    # encode the data string to obtain the raw bytes in base64,
-    # then call b64decode to obtain the original raw bytes.
-    # Finally, decode() the bytes to obtain the results as a 
-    # printable string.
-    #
-      
-    base64_bytes = datastr.encode()
-    bytes = base64.b64decode(base64_bytes)
-    results = bytes.decode()
-
-    print(results)
-    return
-
-  except Exception as e:
-    logging.error("**ERROR: download() failed:")
-    logging.error("url: " + url)
-    logging.error(e)
-    return
-
-############################################################
-#
-# upload_and_poll
-#
-def upload_and_poll(baseurl):
-  """
-  uploads and polls for results
-
-  Parameters
-  ----------
-  baseurl: baseurl for web service
-
-  Returns
-  -------
-  nothing
-  """
-  
-  try:
-    print("Enter PDF filename>")
-    local_filename = input()
-
-    if not pathlib.Path(local_filename).is_file():
-      print("PDF file '", local_filename, "' does not exist...")
-      return
-
-    print("Enter user id>")
-    userid = input()
-
-    #
-    # build the data packet. First step is read the PDF
-    # as raw bytes:
-    #
-    infile = open(local_filename, "rb")
-    bytes = infile.read()
-    infile.close()
-
-    #
-    # now encode the pdf as base64. Note b64encode returns
-    # a bytes object, not a string. So then we have to convert
-    # (decode) the bytes -> string, and then we can serialize
-    # the string as JSON for upload to server:
-    #
-    data = base64.b64encode(bytes)
-    datastr = data.decode()
-
-    data = {"filename": local_filename, "data": datastr}
-
-    #
-    # call the web service:
-    #
-    url = baseurl + '/pdf/' + userid
-    res = web_service_post(url, data)
-
-    #
-    # let's look at what we got back:
-    #
-    if res.status_code == 200: #success
-      pass
-    elif res.status_code == 400: # no such user
-      body = res.json()
-      print(body)
-      return
-    else:
-      # failed:
-      print("Failed with status code:", res.status_code)
-      print("url: " + url)
-      if res.status_code == 500:
-        # we'll have an error message
-        body = res.json()
-        print("Error message:", body)
-      #
-      return
-
-    #
-    # success, extract jobid:
-    #
-    body = res.json()
-    jobid = body
-
-    while True:
-      #
-      # call the web service:
-      #
-      url = baseurl + '/results/' + jobid
-      res = web_service_get(url)
-
-      #
-      # let's look at what we got back:
-      #
-      print(res.status_code)
-      # output message
-      if res.status_code in [400, 480, 481, 482, 500]:
-        body = res.json()
-        print(body)
-      # error
-      if res.status_code in [400, 482, 500]:
-        return
-      # completed
-      if res.status_code == 200:
-        break
-      # otherwise sleep
-      time.sleep(random.randint(1, 5))
-      
-    # output results
-    body = res.json()
-    datastr = body
-      
-    base64_bytes = datastr.encode()
-    bytes = base64.b64decode(base64_bytes)
-    results = bytes.decode()
-
-    print(results)
-    
-    return
-
-  except Exception as e:
-    logging.error("**ERROR: upload_and_poll() failed:")
-    logging.error(e)
-    return
-  
-
-############################################################
 # main
 #
 try:
@@ -790,15 +435,7 @@ try:
     if cmd == 1:
       users(baseurl)
     elif cmd == 2:
-      jobs(baseurl)
-    elif cmd == 3:
-      reset(baseurl)
-    elif cmd == 4:
       upload(baseurl)
-    elif cmd == 5:
-      download(baseurl)
-    elif cmd == 6:
-      upload_and_poll(baseurl)
     else:
       print("** Unknown command, try again...")
     #
