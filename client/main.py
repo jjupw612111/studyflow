@@ -148,8 +148,8 @@ def users(baseurl):
 
     for user in users:
       print(user.userid)
-      print(" ", user.username)
-      print(" ", user.pwdhash)
+      print(" ", user.email)
+      print(" ", user.firstname, user.lastname)
     #
     return
 
