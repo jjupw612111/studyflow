@@ -13,7 +13,7 @@ from configparser import ConfigParser
 def lambda_handler(event, context):
   try:
     print("**STARTING**")
-    print("**lambda: proj03_users**")
+    print("**lambda: proj03_createUser**")
     
     #
     # setup AWS based on config file:
@@ -32,6 +32,34 @@ def lambda_handler(event, context):
     rds_username = configur.get('rds', 'user_name')
     rds_pwd = configur.get('rds', 'user_pwd')
     rds_dbname = configur.get('rds', 'db_name')
+ 
+    #
+    # get body of request:
+    # - email
+    # - lastname
+    # - firstname
+    #
+    print("**Accessing request body**")
+    
+    if "body" not in event:
+      raise Exception("event has no body")
+      
+    body = json.loads(event["body"]) # parse the json
+    
+    if "email" not in body:
+      raise Exception("event has a body but no email")
+    if "lastname" not in body:
+      raise Exception("event has a body but no lastname")
+    if "firstname" not in body:
+      raise Exception("event has a body but no fistname")
+
+    email = body["email"]
+    lastname = body["lastname"]
+    firstname = body["firstname"]
+    
+    print("email: " + email)
+    print("lastname: " + lastname)
+    print("firstname: " + firstname)
 
     #
     # open connection to the database:
@@ -41,30 +69,31 @@ def lambda_handler(event, context):
     dbConn = datatier.get_dbConn(rds_endpoint, rds_portnum, rds_username, rds_pwd, rds_dbname)
     
     #
-    # now retrieve all the users:
+    # insert into users table
     #
-    print("**Retrieving data**")
-
-    #
-    # TODO #1 of 1: write sql query to select all users from the 
-    # users table, ordered by userid
-    #
-    sql = "SELECT * from users ORDER BY userid";
-    
-    rows = datatier.retrieve_all_rows(dbConn, sql)
-    
-    for row in rows:
-      print(row)
+    print("**Inserting into users table**")
+    sql = "INSERT INTO users (email, lastname, firstname) VALUES (%s, %s, %s);" 
+    # returns number of rows modified
+    mods = datatier.perform_action(dbConn, sql, [email, lastname, firstname])
+    if mods == 0:
+      raise Exception("failed to insert row into projects")
+    # get the userid of new user
+    sql = "SELECT userid FROM users WHERE email = %s"
+    row = datatier.retrieve_one_row(dbConn, sql, [email]) 
+    if len(row) == 0:
+      raise Exception("insertion error: new user not found")
+    userid = row[0]
+    print("userid: " + str(userid))
 
     #
     # respond in an HTTP-like way, i.e. with a status
     # code and body in JSON format:
     #
-    print("**DONE, returning rows**")
+    print("**DONE, returning new userid**")
     
     return {
       'statusCode': 200,
-      'body': json.dumps(rows)
+      'body': json.dumps(userid)
     }
     
   except Exception as err:

@@ -41,8 +41,6 @@ class User:
     self.lastname = row[2]
     self.firstname = row[3]
 
-
-
 ############################################################
 #
 # prompt
