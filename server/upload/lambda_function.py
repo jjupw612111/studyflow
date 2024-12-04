@@ -12,6 +12,7 @@ import os
 import datatier
 
 from configparser import ConfigParser
+from pypdf import PdfReader
 
 def lambda_handler(event, context):
   try:
@@ -171,6 +172,7 @@ def lambda_handler(event, context):
     #
     # upload the file to s3
     #
+    print("**Uploading file to s3**")
     bucket.upload_file(local_filename, 
                       s3filename, 
                       ExtraArgs={
@@ -180,22 +182,42 @@ def lambda_handler(event, context):
     
 
     #
-    # TODO: extract text of uploaded file
+    # extract text of uploaded file
     #
+    print("**Extracting text from pdf**")
+    reader = PdfReader(local_filename)
+    number_of_pages = len(reader.pages)
+
+    texts = ""
+    for i in range(0, number_of_pages):
+      page = reader.pages[i]
+      text = page.extract_text()
+      texts += text
+      print("** Page", i+1, ", text length", len(text))
+
+    print("**DONE extracting text**")
 
     #
-    # TODO: update conversations table
+    # update conversations table
     #
+    print("**Updating conversations table**") 
+    sql = """
+      INSERT INTO conversations(projectid, timestamp, role, message) VALUES(%s, NOW(), %s, %s);
+    """
+    mods = datatier.perform_action(dbConn, sql, [projectid, "user", texts])
+    if mods == 0:
+      raise Exception("failed to insert row into conversations")
+    print("**Inserted into conversations**") 
 
     #
     # respond in an HTTP-like way, i.e. with a status
     # code and body in JSON format:
     #
-    print("**DONE, returning rows**")
+    print("**DONE, returning filename in s3**")
     
     return {
       'statusCode': 200,
-      'body': "hello world"
+      'body': json.dumps(s3filename)
     }
     
   except Exception as err:
