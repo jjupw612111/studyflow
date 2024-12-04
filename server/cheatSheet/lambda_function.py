@@ -2,7 +2,7 @@
 # Takes a user input for : list of topics and projectID
 # outputs a cheat sheet pdf
 #
-
+import openai
 import json
 import boto3
 import os
@@ -23,7 +23,7 @@ def lambda_handler(event, context):
     configur = ConfigParser()
     configur.read(config_file)
 
-
+    
     #
     # configure for RDS access
     #
@@ -33,13 +33,12 @@ def lambda_handler(event, context):
     rds_pwd = configur.get('rds', 'user_pwd')
     rds_dbname = configur.get('rds', 'db_name')
     openai_key = configur.get('openai', 'openai_api_key')
-
     
     #
     # open connection to the database:
     #
     print("**Opening connection**")
-    dbConn = datatier.get_dbConn(rds_endpoint, rds_portnum, rds_username, rds_pwd, rds_dbname)
+    #dbConn = datatier.get_dbConn(rds_endpoint, rds_portnum, rds_username, rds_pwd, rds_dbname)
 
     #
     #TODO: Retrieve the list of topics and projectID from client
@@ -74,7 +73,6 @@ In summary, tropical vegetation is a dynamic and intricate system that balances 
     gen_text = openai_sheet_helper(topics_list, content, openai_key) #we need projectID to get the relevant text for the document 
     
 
-
     # 
     #
     # respond in an HTTP-like way, i.e. with a status
@@ -84,7 +82,7 @@ In summary, tropical vegetation is a dynamic and intricate system that balances 
     
     return {
       'statusCode': 200,
-      'body': gen_text
+      'body': 'text'
     }
     
   except Exception as err:
@@ -95,3 +93,7 @@ In summary, tropical vegetation is a dynamic and intricate system that balances 
       'statusCode': 500,
       'body': json.dumps(str(err))
     }
+
+
+#test
+lambda_handler("test","test")
