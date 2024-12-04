@@ -189,6 +189,9 @@ def upload(baseurl):
     print("Enter user id>")
     userid = input()
 
+    print("Enter project name>")
+    projectname = input()
+
     #
     # build the data packet. First step is read the PDF
     # as raw bytes:
@@ -206,7 +209,14 @@ def upload(baseurl):
     data = base64.b64encode(bytes)
     datastr = data.decode()
 
-    data = {"filename": local_filename, "data": datastr}
+    # write to outfile
+    outfile = open("out.out", "w")
+    outfile.write(datastr)
+    outfile.close()
+
+    data = {"projectname": projectname, 
+            "filename": local_filename, 
+            "data": datastr}
 
     #
     # call the web service:
@@ -239,10 +249,9 @@ def upload(baseurl):
     #
     body = res.json()
 
-    jobid = body
+    print("success:", body)
 
-    print("PDF uploaded, job id =", jobid)
-    return jobid
+    return body
 
   except Exception as e:
     logging.error("**ERROR: upload() failed:")
