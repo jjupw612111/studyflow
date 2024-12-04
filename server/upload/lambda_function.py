@@ -134,6 +134,7 @@ def lambda_handler(event, context):
       print("**Retrieved project:", row) 
     
     projectid = row[0]
+    bucketfolder = row[3]
 
     #
     # prepare for s3 upload
