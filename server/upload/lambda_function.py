@@ -119,7 +119,7 @@ def lambda_handler(event, context):
     
     if len(row) == 0:
       print("**Creating new project**") 
-      bucketfolder = "studyhelper/" + username + "/" + projectname + "/"
+      bucketfolder = "studyhelper/" + username + "-" + userid + "/" + projectname + "-" + projectid + "/"
       sql = "INSERT INTO projects (projectname, bucketfolder, userid) VALUES (%s, %s, %s);"
       # returns number of rows modified
       mods = datatier.perform_action(dbConn, sql, [projectname, bucketfolder, userid])

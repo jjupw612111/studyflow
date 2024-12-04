@@ -41,6 +41,13 @@ class User:
     self.lastname = row[2]
     self.firstname = row[3]
 
+class Project:
+  def __init__(self, row):
+    self.projectid = row[0]
+    self.userid = row[1]
+    self.projectname = row[2]
+    self.bucketfolder = row[3]
+
 ############################################################
 #
 # prompt
@@ -64,6 +71,7 @@ def prompt():
     print("   1 => users")
     print("   2 => upload")
     print("   3 => create user")
+    print("   4 => projects")
 
     cmd = input()
 
@@ -106,8 +114,6 @@ def users(baseurl):
     #
     api = '/users'
     url = baseurl + api
-
-    # res = requests.get(url)
     res = web_service_get(url)
 
     #
@@ -228,6 +234,88 @@ def createUser(baseurl):
     logging.error(e)
     return
 
+############################################################
+#
+# projects
+#
+def projects(baseurl):
+  """
+  Given the userid,
+  Prints out all the projects of a user
+
+  Parameters
+  ----------
+  baseurl: baseurl for web service
+
+  Returns
+  -------
+  nothing
+  """
+
+  try:
+    #
+    # Prompt user
+    #
+    print("Enter userid>")
+    userid = input()
+
+    #
+    # call the web service:
+    #
+    api = '/projects'
+    url = baseurl + api + "/" + userid
+    res = web_service_get(url)
+
+    #
+    # let's look at what we got back:
+    #
+    if res.status_code == 200: #success
+      pass
+    else:
+      # failed:
+      print("Failed with status code:", res.status_code)
+      print("url: " + url)
+      if res.status_code == 500:
+        # we'll have an error message
+        body = res.json()
+        print("Error message:", body)
+      #
+      return
+
+    #
+    # deserialize and extract projects:
+    #
+    body = res.json()
+
+    #
+    # let's map each project into a Project object:
+    #
+    projects = []
+    for row in body:
+      proj = Project(row)
+      projects.append(proj)
+      
+    #
+    # Now we can think OOP:
+    #
+    if len(projects) == 0:
+      print("no projects...")
+      return
+
+    for project in projects:
+      print(project.projectid)
+      print(" ", project.userid)
+      print(" ", project.projectname)
+      print(" ", project.bucketfolder)
+    return
+
+  except Exception as e:
+    logging.error("**ERROR: users() failed:")
+    logging.error("url: " + url)
+    logging.error(e)
+    return
+  
+  
 ############################################################
 #
 # upload
@@ -399,6 +487,8 @@ try:
       upload(baseurl)
     elif cmd == 3:
       createUser(baseurl)
+    elif cmd == 4:
+      projects(baseurl)
     else:
       print("** Unknown command, try again...")
     #
