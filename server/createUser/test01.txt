@@ -1,1 +1,3 @@
-{}
+{
+  "body": "{ \"email\": \"amy@email.com\",\"lastname\": \"liao\", \"firstname\": \"amy\" }"
+}
