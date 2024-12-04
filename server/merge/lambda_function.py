@@ -87,13 +87,15 @@ def lambda_handler(event, context):
     #
     print("**Retrieving s3 bucketfolder**")
     sql = """
-      SELECT bucketfolder FROM projects JOIN users ON projects.userid = users.userid WHERE userid = %s AND projectname = %s;
+      SELECT filename FROM projects 
+                      JOIN users ON projects.userid = users.userid 
+                      JOIN projectdocs ON projects.projectid = projectdocs.projectid
+      WHERE users.userid = %s AND projectname = %s;
     """
-    row = datatier.retrieve_one_row(dbConn, sql, [userid, projectname])
-    if len(row) == 0:
-      raise Exception("bucketfolder not found")
-    bucketfolder = row[0]
-    print("bucketfolder:", bucketfolder) 
+    rows = datatier.retrieve_all_rows(dbConn, sql, [userid, projectname])
+    if len(rows) == 0:
+      raise Exception("no project docs found")
+    print("files:", rows) 
 
     #
     # TODO: download each pdf at a time, merge it
