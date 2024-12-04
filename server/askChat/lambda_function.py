@@ -13,7 +13,7 @@ from configparser import ConfigParser
 def lambda_handler(event, context):
   try:
     print("**STARTING**")
-    print("**lambda: proj03_users**")
+    print("**lambda: studyhelper_askChat**")
     
     #
     # setup AWS based on config file:

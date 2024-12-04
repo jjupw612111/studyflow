@@ -17,7 +17,7 @@ from pypdf import PdfReader
 def lambda_handler(event, context):
   try:
     print("**STARTING**")
-    print("**lambda: proj03_users**")
+    print("**lambda: studyhelper_upload**")
     
     #
     # setup AWS based on config file:
