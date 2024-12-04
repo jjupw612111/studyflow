@@ -116,7 +116,7 @@ def lambda_handler(event, context):
     
     return {
       'statusCode': 200,
-      'body': json.dumps(rows)
+      'body': json.dumps("hello world")
     }
     
   except Exception as err:
