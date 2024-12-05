@@ -7,7 +7,7 @@ import json
 import boto3
 import os
 import datatier
-from openai_helpers import openai_sheet_helper 
+from openai_helper_requests import openai_sheet_helper 
 
 from configparser import ConfigParser
 
