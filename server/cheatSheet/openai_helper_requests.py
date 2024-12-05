@@ -1,9 +1,8 @@
 import requests
 
-
 api_key = "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"
 
-def openai_sheet_helper(topics, content, api_key):
+def openai_sheet_helper(context, content, api_key, prompt_choice):
     # Define the OpenAI API endpoint
     url = "https://api.openai.com/v1/chat/completions"
 
@@ -14,13 +13,21 @@ def openai_sheet_helper(topics, content, api_key):
     }
 
     # Construct the payload
-    prompt = f"""
+    prompt_cheatsheet = f"""
     Below, you are given two pieces of information. First, content for which we want you to make a review sheet.
     Second, a list of topics for making a review sheet. Please output a review sheet where for each topic, you list
-    the topic and the relevant information about it.
+    the topic and the relevant information about it. 
     Content: {content}
-    List of Topics: {topics}
+    List of Topics: {context}
     """
+
+    prompt_ask_chat = f"""
+    You are a helpful study assistant. You are given study content and a question to answer about it:
+    Content: {content}
+    List of Topics: {context}
+    """
+
+    prompt = prompt_ask_chat if prompt_choice == 1 else prompt_cheatsheet
 
     data = {
         "model": "gpt-4",
@@ -46,4 +53,4 @@ def openai_sheet_helper(topics, content, api_key):
         return None
 
 #test
-openai_sheet_helper("hi", "hello how are you", api_key)
+#openai_sheet_helper("hi", "hello how are you", api_key)
