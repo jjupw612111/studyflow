@@ -49,6 +49,9 @@ def lambda_handler(event, context):
     # now retrieve the text from the conversations table:
     #
     # print("**Retrieving data**")
+
+    sql = "SELECT * from conversions WHERE projectID = %s "
+
     # #TODO: retrieve the text from the conversations table 
     # with open("sample.txt", "r") as file:
     #   content = file.read()
