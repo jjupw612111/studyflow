@@ -51,8 +51,8 @@ def lambda_handler(event, context):
     if "question" not in body:
       raise Exception("event has a body but no question")
 
-    projectid = body["projectid"]
-    question = body["question"] 
+    projectid = body['projectid']
+    question = body['question'] 
     
     print("projectid:", projectid)
     print("question:", question)
@@ -88,18 +88,19 @@ def lambda_handler(event, context):
     # TODO: select all messages from conversations table where projectID = projectid; gets content for chatgpt
     #
     print("**Retrieving data**")
-    sql = "SELECT message from conversations WHERE projectid = %s"
+    sql = "SELECT * from conversations WHERE projectid = %s"
     rows = datatier.retrieve_all_rows(dbConn, sql, [projectid])
     for row in rows:
       print(row)
 
-    content = " ".join([row['message'] for row in rows])
+    content = " ".join([row[3] for row in rows])
+    print("content given to ChatGPT:",content)
 
     #
     # TODO: send the messages to OpenAI to get a response
     #
     print("**Sending data to OpenAI**")
-    gen_text = openai_sheet_helper(question, content, openai_key) 
+    gen_text = openai_sheet_helper(question, content, openai_key, 1) 
 
     #
     # TODO: store response in conversations table

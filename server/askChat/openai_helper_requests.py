@@ -22,9 +22,9 @@ def openai_sheet_helper(context, content, api_key, prompt_choice):
     """
 
     prompt_ask_chat = f"""
-    You are a helpful study assistant. You are given study content and a question to answer about it:
+    You are a helpful study assistant. You are given some study content and a question to answer about it:
     Content: {content}
-    List of Topics: {context}
+    question: {context}
     """
 
     prompt = prompt_ask_chat if prompt_choice == 1 else prompt_cheatsheet
