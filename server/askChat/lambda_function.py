@@ -1,21 +1,18 @@
 #
-# Retrieves and returns all the users in the 
-# BenfordApp database.
+# Takes a user input for : list of topics and projectID
+# outputs a cheat sheet pdf
 #
-
 import json
 import boto3
 import os
 import datatier
 from openai_helper_requests import openai_sheet_helper 
-
 from configparser import ConfigParser
 
 def lambda_handler(event, context):
   try:
     print("**STARTING**")
-    print("**lambda: studyhelper_askChat**")
-    
+    print("**lambda: cheatSheet**")
     #
     # setup AWS based on config file:
     #
@@ -24,6 +21,7 @@ def lambda_handler(event, context):
     
     configur = ConfigParser()
     configur.read(config_file)
+
     
     #
     # configure for RDS access
@@ -34,10 +32,18 @@ def lambda_handler(event, context):
     rds_pwd = configur.get('rds', 'user_pwd')
     rds_dbname = configur.get('rds', 'db_name')
     openai_key = configur.get('openai', 'openai_api_key')
+    
+    #
+    # open connection to the database:
+    #
+  
+    #
+    #TODO: Retrieve the list of topics and projectID from client
+    #
     #
     # get body of request:
     # - projectid
-    # - question
+    # - topics
     #
     print("**Accessing request body**")
     
@@ -48,23 +54,20 @@ def lambda_handler(event, context):
     
     if "projectid" not in body:
       raise Exception("event has a body but no projectid")
-    if "question" not in body:
-      raise Exception("event has a body but no question")
+    if "topics" not in body:
+      raise Exception("event has a body but no topics")
 
     projectid = body['projectid']
-    question = body['question'] 
+    topics = body['topics'] 
     
     print("projectid:", projectid)
-    print("question:", question)
+    print("topics:", topics)
 
- 
     #
     # open connection to the database:
     #
     print("**Opening connection**")
-    
     dbConn = datatier.get_dbConn(rds_endpoint, rds_portnum, rds_username, rds_pwd, rds_dbname)
-    
     #
     # TODO: check if projectid is in the db
     #
@@ -73,17 +76,17 @@ def lambda_handler(event, context):
     rows = datatier.retrieve_all_rows(dbConn, sql, [projectid])
     if len(rows) == 0:
       raise Exception("projectid not found in projects table")
-
+    
     #
-    # TODO: add question to conversations table 
+    # TODO: add topcs to conversations
     #
-    print("**Adding question to conversations**")
+    print("**Adding topics to conversations**")
     sql = "INSERT INTO conversations (message, projectid,role,timestamp) VALUES (%s, %s, %s, NOW());"
     # returns number of rows modified
-    mods = datatier.perform_action(dbConn, sql, [question, projectid, "user"])
+    mods = datatier.perform_action(dbConn, sql, [topics, projectid, "user"])
     if mods == 0:
-      raise Exception("failed to insert question into conversations table")
-
+      raise Exception("failed to insert topics into conversations table")
+    
     #
     # TODO: select all messages from conversations table where projectID = projectid; gets content for chatgpt
     #
@@ -92,7 +95,7 @@ def lambda_handler(event, context):
     rows = datatier.retrieve_all_rows(dbConn, sql, [projectid])
     for row in rows:
       print(row)
-    
+
     #index 3 is the message
     content = " ".join([row[3] for row in rows])
     print("content given to ChatGPT:",content)
@@ -101,8 +104,7 @@ def lambda_handler(event, context):
     # TODO: send the messages to OpenAI to get a response
     #
     print("**Sending data to OpenAI**")
-    gen_text = openai_sheet_helper(question, content, openai_key, 1) 
-
+    gen_text = openai_sheet_helper(topics, content, openai_key, 2) 
     #
     # TODO: store response in conversations table
     #
@@ -114,10 +116,57 @@ def lambda_handler(event, context):
 
 
     #
+    # TODO: find bucketfolder for projectid
+    #
+    print("**Find bucketfolder**")
+    sql = "SELECT bucketfolder from projects WHERE projectid = %s;"
+    bucketfolder = datatier.retrieve_one_row(dbConn, sql, [projectid])[0]
+    print(f"bucketfolder: {bucketfolder}")
+    if len(row) == 0:
+      raise Exception("projectid not found in projects table")
+    
+    print("**Setup S3**")
+    # TODO: Upload that txt of response to s3
+    s3_profile = 's3readwrite'
+    boto3.setup_default_session(profile_name=s3_profile)
+    
+    s3 = boto3.resource('s3')
+    bucket = s3.Bucket(bucketfolder)
+    
+    local_file_name = "/tmp/results.txt"
+
+    print("**Write to file system**")
+    with open(local_file_name, 'w') as file:
+      file.write(content)
+
+    filename = bucketfolder +"/result/"+ "result.txt"
+
+    print("File in tmp written... Uploading to S3")
+    bucket.upload_file(local_file_name, 
+                      filename, 
+                      ExtraArgs={
+                        'ACL': 'public-read',
+                        'ContentType': 'text/plain'
+                      })
+
+
+    # #hard-coded inputs for testing:
+    # with open('sample2.txt', 'r') as file:
+    #   content = file.readlines()
+    # with open('topics2.txt', 'r') as file:
+    #   topics_list = file.readlines()
+    # #
+    # # Call openai api with the provided topics, content, and key
+    # #
+    # gen_text = openai_sheet_helper(topics_list, content, openai_key, 2) #we need projectID to get the relevant text for the document 
+
+
+    # 
+    #
     # respond in an HTTP-like way, i.e. with a status
     # code and body in JSON format:
     #
-    print("**DONE, returning ChatGPT response**")
+    print("**DONE, returning generated text**")
     
     return {
       'statusCode': 200,
@@ -132,3 +181,7 @@ def lambda_handler(event, context):
       'statusCode': 500,
       'body': json.dumps(str(err))
     }
+
+
+#test
+lambda_handler("test","test")

@@ -21,7 +21,15 @@ def lambda_handler(event, context):
     
     configur = ConfigParser()
     configur.read(config_file)
-
+    # TODO: Upload that txt of response to s3
+    s3_profile = 's3readwrite'
+    boto3.setup_default_session(profile_name=s3_profile)
+    bucketname = configur.get('s3', 'bucket_name')
+    print(bucketname)
+    s3 = boto3.resource('s3')
+    bucket = s3.Bucket(bucketname)
+    print(f"bucketname: {bucketname}")
+    
     
     #
     # configure for RDS access
@@ -118,24 +126,44 @@ def lambda_handler(event, context):
     #
     # TODO: find bucketfolder for projectid
     #
+    print("**Find bucketfolder**")
     sql = "SELECT bucketfolder from projects WHERE projectid = %s;"
-    bucketfolder = datatier.retrieve_one_row(dbConn, sql, [projectid])
+    bucketfolder = datatier.retrieve_one_row(dbConn, sql, [projectid])[0]
+    bucket_name = bucketfolder.split('/')[0]  # The first part is the bucket name
+    folder_path = '/'.join(bucketfolder.split('/')[1:]).rstrip('/')  
+    object_key = f"{folder_path}result/result.txt"
+    print(f"object_key: {object_key}")
+
+    print(f"bucketfolder: {bucketfolder}")
     if len(row) == 0:
       raise Exception("projectid not found in projects table")
     
+    print("**Setup S3**")
 
-    # TODO: Upload that txt of response to s3
-    s3 = boto3.resource('s3')
-    bucket = s3.Bucket(bucketfolder)
-    with open("results.txt", a) as file:
-      file.write(gen_text)
-    bucket.upload_file("results.txt", 
-                      "results.txt", 
-                      ExtraArgs={
-                        'ACL': 'public-read',
-                        'ContentType': 'application/pdf'
-                      })
+    local_file_name = "/tmp/results.txt"
 
+    print("**Write to file system**")
+    with open(local_file_name, 'w') as file:
+      file.write(content)
+
+    print('ehllo?')
+
+    # Prepare object key
+    bucket_name = bucketfolder.split('/')[0]  # First part is the bucket name
+    folder_path = '/'.join(bucketfolder.split('/')[1:]).rstrip('/')
+    object_key = f"{folder_path}/result/result.txt"  # Adjust the path
+
+    print(f"Uploading to bucket: {bucket_name}, key: {object_key}")
+    print("TRY THIS: ", bucket_name+'/'+object_key)
+    # Upload the file
+    bucket.upload_file(
+        local_file_name,
+        bucket_name+'/'+object_key,
+        ExtraArgs={
+            'ACL': 'public-read',
+            'ContentType': 'text/plain'
+        }
+    )
 
     # #hard-coded inputs for testing:
     # with open('sample2.txt', 'r') as file:
