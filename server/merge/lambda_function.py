@@ -109,10 +109,9 @@ def lambda_handler(event, context):
     print("**Retrieving project bucketfolder**")
     sql = """
       SELECT bucketfolder FROM projects 
-                          JOIN users ON projects.userid = users.userid 
-      WHERE users.userid = %s AND projectname = %s;
+      WHERE projectid = %s;
     """
-    rows = datatier.retrieve_one_row(dbConn, sql, [userid, projectname])
+    rows = datatier.retrieve_one_row(dbConn, sql, [projectid])
     if len(rows) == 0:
       raise Exception("no project docs found")
     bucketfolder = rows[0]

@@ -527,7 +527,24 @@ def merge(baseurl):
   -------
   nothing
   """
-  pass
+  try:
+    #
+    # Get user input
+    #
+    print("Enter project id>")
+    projectid = input()
+
+    #
+    # Call web service
+    #
+    data = {"projectid": projectid}
+    api = '/merge'
+    url = baseurl + api
+
+    pass
+
+  except:
+    pass
 
 ##########################################################
 #
