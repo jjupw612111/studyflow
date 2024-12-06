@@ -8,6 +8,7 @@ import os
 import datatier
 from openai_helper_requests import openai_sheet_helper 
 from configparser import ConfigParser
+from xml2pdf import xml2pdf 
 
 def lambda_handler(event, context):
   try:
@@ -144,9 +145,7 @@ def lambda_handler(event, context):
 
     print("**Write to file system**")
     with open(local_file_name, 'w') as file:
-      file.write(content)
-
-    print('ehllo?')
+      file.write(gen_text)
 
     # Prepare object key
     bucket_name = bucketfolder.split('/')[0]  # First part is the bucket name
@@ -182,6 +181,9 @@ def lambda_handler(event, context):
     # code and body in JSON format:
     #
     print("**DONE, returning generated text**")
+
+    print("**uploading to tmp storage...")
+    #xml2pdf()
     
     return {
       'statusCode': 200,
