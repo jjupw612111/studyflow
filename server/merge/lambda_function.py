@@ -4,6 +4,7 @@
 #
 
 import json
+import base64
 import boto3
 import os
 import datatier
@@ -155,18 +156,25 @@ def lambda_handler(event, context):
                        }) 
 
     #
-    # TODO: return the s3 download url
-    # 
+    # serialize merged pdf
+    #
+    print("**Serializing merged pdf**")
+
+    infile = open(mergedTmp, "rb")
+    bytes = infile.read()
+    infile.close()
+
+    data = base64.b64encode(bytes)
+    datastr = data.decode()
 
     #
     # respond in an HTTP-like way, i.e. with a status
     # code and body in JSON format:
     #
-    print("**DONE, returning rows**")
-    
+    print("**DONE, returning merged pdf datastr**") 
     return {
       'statusCode': 200,
-      'body': json.dumps("hello world")
+      'body': json.dumps(datastr)
     }
     
   except Exception as err:
