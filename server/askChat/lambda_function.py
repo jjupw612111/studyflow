@@ -92,7 +92,8 @@ def lambda_handler(event, context):
     rows = datatier.retrieve_all_rows(dbConn, sql, [projectid])
     for row in rows:
       print(row)
-
+    
+    #index 3 is the message
     content = " ".join([row[3] for row in rows])
     print("content given to ChatGPT:",content)
 
