@@ -8,7 +8,7 @@ import os
 import datatier
 from openai_helper_requests import openai_sheet_helper 
 from configparser import ConfigParser
-from xml2pdf import xml2pdf 
+from xml2pdf_complex import xml2pdf_complex
 
 def lambda_handler(event, context):
   try:
@@ -22,7 +22,7 @@ def lambda_handler(event, context):
     
     configur = ConfigParser()
     configur.read(config_file)
-    # TODO: Upload that txt of response to s3
+    # TODO: Upload file to s3
     s3_profile = 's3readwrite'
     boto3.setup_default_session(profile_name=s3_profile)
     bucketname = configur.get('s3', 'bucket_name')
@@ -132,7 +132,7 @@ def lambda_handler(event, context):
     bucketfolder = datatier.retrieve_one_row(dbConn, sql, [projectid])[0]
     bucket_name = bucketfolder.split('/')[0]  # The first part is the bucket name
     folder_path = '/'.join(bucketfolder.split('/')[1:]).rstrip('/')  
-    object_key = f"{folder_path}result/result.txt"
+    object_key = f"{folder_path}result/result.pdf"
     print(f"object_key: {object_key}")
 
     print(f"bucketfolder: {bucketfolder}")
@@ -140,50 +140,31 @@ def lambda_handler(event, context):
       raise Exception("projectid not found in projects table")
     
     print("**Setup S3**")
-
-    local_file_name = "/tmp/results.txt"
-
-    print("**Write to file system**")
-    with open(local_file_name, 'w') as file:
-      file.write(gen_text)
-
-    # Prepare object key
-    bucket_name = bucketfolder.split('/')[0]  # First part is the bucket name
-    folder_path = '/'.join(bucketfolder.split('/')[1:]).rstrip('/')
-    object_key = f"{folder_path}/result/result.txt"  # Adjust the path
+   
+    print("**uploading to tmp storage...")
+    xml2pdf_complex(gen_text)
+    pdf_file_name = "/tmp/cheatsheet.pdf"
+    print("**cheat sheet stored in tmp storage at :", pdf_file_name)
 
     print(f"Uploading to bucket: {bucket_name}, key: {object_key}")
-    print("TRY THIS: ", bucket_name+'/'+object_key)
+    print("path:",bucket_name+'/'+object_key)
     # Upload the file
     bucket.upload_file(
-        local_file_name,
+        pdf_file_name,
         bucket_name+'/'+object_key,
         ExtraArgs={
             'ACL': 'public-read',
-            'ContentType': 'text/plain'
+            'ContentType': 'application/pdf'
         }
     )
-
-    # #hard-coded inputs for testing:
-    # with open('sample2.txt', 'r') as file:
-    #   content = file.readlines()
-    # with open('topics2.txt', 'r') as file:
-    #   topics_list = file.readlines()
-    # #
-    # # Call openai api with the provided topics, content, and key
-    # #
-    # gen_text = openai_sheet_helper(topics_list, content, openai_key, 2) #we need projectID to get the relevant text for the document 
-
+    print("successfully uploaded to s3 at: ", bucket_name+'/'+object_key)
 
     # 
     #
     # respond in an HTTP-like way, i.e. with a status
     # code and body in JSON format:
     #
-    print("**DONE, returning generated text**")
-
-    print("**uploading to tmp storage...")
-    xml2pdf()
+    print("**DONE, returning generated text in response**")
     
     return {
       'statusCode': 200,
@@ -201,4 +182,4 @@ def lambda_handler(event, context):
 
 
 #test
-lambda_handler("test","test")
+#lambda_handler("test","test")
