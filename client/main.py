@@ -48,6 +48,11 @@ class Project:
     self.projectname = row[2]
     self.bucketfolder = row[3]
 
+class Pdf:
+  def __init__(self, row):
+    self.filename = row[0]
+    self.projectid = row[1]
+
 ############################################################
 #
 # prompt
@@ -509,7 +514,69 @@ def pdfs(baseurl):
   -------
   nothing
   """
-  pass
+  try:
+    #
+    # Prompt user
+    #
+    print("Enter projectid>")
+    projectid = input()
+
+    #
+    # call the web service:
+    #
+    api = '/pdfs/'
+    url = baseurl + api + projectid
+    res = web_service_get(url)
+
+    #
+    # check response status code:
+    #
+    if res.status_code == 200: #success
+      pass
+    else:
+      # failed:
+      print("Failed with status code:", res.status_code)
+      print("url: " + url)
+      if res.status_code == 500:
+        # we'll have an error message
+        body = res.json()
+        print("Error message:", body)
+      #
+      return
+
+    #
+    # deserialize and extract pdfs:
+    #
+    body = res.json()
+
+    #
+    # no pdfs in project
+    #
+    if len(body) == 0:
+      print("no pdfs in project...")
+      return
+
+    #
+    # OOP
+    #
+    pdfs = []
+    for row in body:
+      pdf = Pdf(row)
+      pdfs.append(pdf)
+      
+    #
+    # print out pdf names:
+    #
+    for pdf in pdfs:
+      print(pdf.filename)
+
+    return
+
+  except Exception as e:
+    logging.error("**ERROR: pdfs() failed:")
+    logging.error("url: " + url)
+    logging.error(e)
+    return
 
 ##########################################################
 #
