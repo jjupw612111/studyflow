@@ -52,6 +52,7 @@ class Pdf:
   def __init__(self, row):
     self.filename = row[0]
     self.projectid = row[1]
+    self.originalfilename = row[2]
 
 ############################################################
 #
@@ -568,7 +569,7 @@ def pdfs(baseurl):
     # print out pdf names:
     #
     for i, pdf in enumerate(pdfs): 
-      print(i, ":", pdf.filename)
+      print(i, ":", pdf.originalfilename)
 
     return
 

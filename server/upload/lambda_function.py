@@ -163,9 +163,9 @@ def lambda_handler(event, context):
     #
     print("**Updating projectdocs table**") 
     sql = """
-      INSERT INTO projectdocs(filename, projectid) VALUES(%s, %s);
+      INSERT INTO projectdocs(filename, projectid, originalfilename) VALUES(%s, %s, %s);
     """
-    mods = datatier.perform_action(dbConn, sql, [s3filename, projectid])
+    mods = datatier.perform_action(dbConn, sql, [s3filename, projectid, filename])
     if mods == 0:
       raise Exception("failed to insert row into projectdocs")
     print("**Inserted into projectdocs**") 
