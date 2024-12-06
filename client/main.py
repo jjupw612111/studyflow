@@ -600,7 +600,7 @@ def merge(baseurl):
     #
     print("Enter project id>")
     projectid = input()
-    print("Enter local filename of downloaded file>")
+    print("Enter merged pdf filename>")
     local_filename = input()
     # file already exists: append 1 to filename
     if pathlib.Path(local_filename).is_file():
@@ -666,7 +666,64 @@ def cheatsheet(baseurl):
   -------
   nothing
   """
-  pass
+  try:
+    #
+    # Get user input
+    #
+    print("Enter project id>")
+    projectid = input()
+
+    print("Enter topics (comma separated)>")
+    topics = input()
+
+    print("Enter cheat sheet filename>")
+    local_filename = input()
+    # file already exists: append 1 to filename
+    if pathlib.Path(local_filename).is_file():
+      local_filename = local_filename + " (1)"
+
+    #
+    # Call web service
+    #
+    data = {"projectid": projectid, "topics": topics}
+    api = '/cheatSheet/'
+    url = baseurl + api
+    res = web_service_post(url, data)
+    
+    #
+    # let's look at what we got back:
+    #
+    if res.status_code == 200: #success
+      pass
+    else:
+      # failed:
+      print("Failed with status code:", res.status_code)
+      print("url: " + url)
+      if res.status_code == 500:
+        # we'll have an error message
+        body = res.json()
+        print("Error message:", body)
+      return
+    
+    #
+    # success, we got pdf datastr back
+    #
+    datastr = res.json()
+
+    #
+    # write binary data to a local file
+    #
+    bytes = base64.b64decode(datastr)
+    outfile = open(local_filename, "wb")
+    outfile.write(bytes)
+    print("Downloaded cheat sheet and saved as '", local_filename, "'")
+    
+  except Exception as e:
+    logging.error("**ERROR: cheatsheet() failed:")
+    logging.error("url: " + url)
+    logging.error(e)
+    return
+
 
 ############################################################
 # main
