@@ -71,8 +71,11 @@ def prompt():
     print("   1 => users")
     print("   2 => create user")
     print("   3 => projects")
+    print("   4 => pdfs")
     print("   5 => upload")
     print("   6 => ask chat")
+    print("   7 => merge")
+    print("   8 => cheatsheet")
 
     cmd = input()
 
@@ -407,7 +410,7 @@ def upload(baseurl):
 
   Returns
   -------
-  jobid: the jobid of the pdf we just uploaded
+  The filename in S3
   """
 
   try:
@@ -491,6 +494,61 @@ def upload(baseurl):
     logging.error(e)
     return
 
+##########################################################
+#
+# pdfs
+#
+def pdfs(baseurl):
+  """
+  Given a project id, tells you what pdfs are in it.
+
+  Parameters
+  ----------
+  baseurl: baseurl for web service
+
+  Returns
+  -------
+  nothing
+  """
+  pass
+
+##########################################################
+#
+# merge
+#
+def merge(baseurl):
+  """
+  Merge all the pdfs in a project into a single pdf.
+
+  Parameters
+  ----------
+  baseurl: baseurl for web service
+
+  Returns
+  -------
+  nothing
+  """
+  pass
+
+##########################################################
+#
+# cheatsheet
+#
+def cheatsheet(baseurl):
+  """
+  Given a list of topics and a project id, 
+  generates and downloads a cheat sheet to help you
+  study those topics.
+
+  Parameters
+  ----------
+  baseurl: baseurl for web service
+
+  Returns
+  -------
+  nothing
+  """
+  pass
 
 ############################################################
 # main
@@ -564,9 +622,15 @@ try:
     elif cmd == 3:
       projects(baseurl)
     elif cmd == 4:
-      upload(baseurl)
+      pdfs(baseurl)
     elif cmd == 5:
+      upload(baseurl)
+    elif cmd == 6:
       askchat(baseurl)
+    elif cmd == 7:
+      merge(baseurl)
+    elif cmd == 8:
+      cheatsheet(baseurl)
     else:
       print("** Unknown command, try again...")
     #
