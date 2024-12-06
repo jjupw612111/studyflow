@@ -15,10 +15,24 @@ def openai_sheet_helper(context, content, api_key, prompt_choice):
     # Construct the payload
     prompt_cheatsheet = f"""
     Below, you are given two pieces of information. First, content for which we want you to make a review sheet.
-    Second, a list of topics for making a review sheet. Please output a review sheet where for each topic, you list
-    the topic and the relevant information about it. 
+    Second, a list of topics for making a review sheet. 
     Content: {content}
     List of Topics: {context}
+    Please output a review sheet where for each topic, you list
+    the topic followed by the relevant information about it. Importantly, return the output in XML so it can be formatted into a pdf. Use the following template for the formatting:
+    <?xml version="1.0" encoding="UTF-8"?>
+        <document>
+            <topic>
+                <name><![CDATA[<b>topic name 1</b>]]></name>
+                <summary>
+                </summary>
+            </topic>
+            <topic>
+                <name><![CDATA[<b>topic name 2</b>]]></name>
+                <summary>
+                </summary>
+            </topic>
+        </document>
     """
 
     prompt_ask_chat = f"""
@@ -53,4 +67,4 @@ def openai_sheet_helper(context, content, api_key, prompt_choice):
         return None
 
 #test
-#openai_sheet_helper("hi", "hello how are you", api_key)
+openai_sheet_helper("hi", "hello how are you", api_key)
