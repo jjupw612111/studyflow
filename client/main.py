@@ -533,6 +533,11 @@ def merge(baseurl):
     #
     print("Enter project id>")
     projectid = input()
+    print("Enter local filename of downloaded file>")
+    local_filename = input()
+    # file already exists: append 1 to filename
+    if pathlib.Path(local_filename).is_file():
+      local_filename = local_filename + " (1)"
 
     #
     # Call web service
@@ -540,11 +545,41 @@ def merge(baseurl):
     data = {"projectid": projectid}
     api = '/merge'
     url = baseurl + api
+    res = web_service_post(url, data)
+    
+    #
+    # let's look at what we got back:
+    #
+    if res.status_code == 200: #success
+      pass
+    else:
+      # failed:
+      print("Failed with status code:", res.status_code)
+      print("url: " + url)
+      if res.status_code == 500:
+        # we'll have an error message
+        body = res.json()
+        print("Error message:", body)
+      return
+    
+    #
+    # success, we got pdf datastr back
+    #
+    datastr = res.json()
 
-    pass
-
+    #
+    # write binary data to a local file
+    #
+    bytes = base64.b64decode(datastr)
+    outfile = open(local_filename, "wb")
+    outfile.write(bytes)
+    print("Downloaded merged pdf and saved as '", local_filename, "'")
+    
   except:
-    pass
+    logging.error("**ERROR: merge() failed:")
+    logging.error("url: " + url)
+    logging.error(e)
+    return
 
 ##########################################################
 #
