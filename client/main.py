@@ -339,6 +339,7 @@ def askchat(baseurl):
     #
     # Prompt user
     #
+
     print("Enter projectid>")
     projectid = input()
 
@@ -348,9 +349,13 @@ def askchat(baseurl):
     #
     # call the web service:
     #
-    api = '/askchat'
-    url = baseurl + api + "/" + projectid
-    res = web_service_get(url)
+    api = '/askchat/'
+    url = baseurl + api 
+    data = {"projectid":projectid, "question": question}
+    #
+    # call the web service:
+    #
+    res = web_service_post(url, data)
 
     #
     # let's look at what we got back:
