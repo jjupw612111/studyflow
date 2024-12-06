@@ -604,8 +604,11 @@ def merge(baseurl):
     print("Enter merged pdf filename>")
     local_filename = input()
     # file already exists: append 1 to filename
-    if pathlib.Path(local_filename).is_file():
-      local_filename = local_filename + " (1)"
+    pathobj = pathlib.Path(local_filename)
+    if pathobj.suffix != ".pdf" : 
+      raise Exception("expecting filename to have .pdf extension") 
+    if pathobj.is_file():
+      local_filename = pathobj.stem + "(1)" + pathobj.suffix
 
     #
     # Call web service
