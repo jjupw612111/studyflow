@@ -567,8 +567,8 @@ def pdfs(baseurl):
     #
     # print out pdf names:
     #
-    for pdf in pdfs:
-      print(pdf.filename)
+    for i, pdf in enumerate(pdfs): 
+      print(i, ":", pdf.filename)
 
     return
 
