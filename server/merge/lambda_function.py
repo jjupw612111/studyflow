@@ -103,7 +103,7 @@ def lambda_handler(event, context):
     # download all project files to tmp, collecting filenames
     #
     tmpfiles = []
-    for row, i in enumerate(rows):
+    for i, row in enumerate(rows):
       bucketkey = row[0]
       print("**DOWNLOADING '", bucketkey, "'**")
       local_pdf_name = "/tmp/" + i + ".pdf"
