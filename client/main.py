@@ -233,7 +233,7 @@ def createUser(baseurl):
     return body
 
   except Exception as e:
-    logging.error("**ERROR: upload() failed:")
+    logging.error("**ERROR: createUser() failed:")
     logging.error("url: " + url)
     logging.error(e)
     return
@@ -314,7 +314,7 @@ def projects(baseurl):
     return
 
   except Exception as e:
-    logging.error("**ERROR: users() failed:")
+    logging.error("**ERROR: projects() failed:")
     logging.error("url: " + url)
     logging.error(e)
     return
