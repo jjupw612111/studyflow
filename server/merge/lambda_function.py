@@ -9,8 +9,9 @@ import os
 import datatier
 
 from configparser import ConfigParser
+from pypdf import PdfWriter
 
-# /merge/{userid}/{projectid}
+# /merge/{userid}
 def lambda_handler(event, context):
   try:
     print("**STARTING**")
@@ -59,7 +60,7 @@ def lambda_handler(event, context):
         raise Exception("requires userid parameter in pathParameters")
     else:
         raise Exception("requires userid parameter in event") 
-    print("userid:", userid)
+    print("--userid:", userid)
 
     #
     # get body of request:
@@ -73,7 +74,7 @@ def lambda_handler(event, context):
     if "projectname" not in body:
       raise Exception("event has a body but no projectname")
     projectname = body["projectname"]    
-    print("projectname:", projectname)
+    print("--projectname:", projectname)
 
 
     #
@@ -83,7 +84,7 @@ def lambda_handler(event, context):
     dbConn = datatier.get_dbConn(rds_endpoint, rds_portnum, rds_username, rds_pwd, rds_dbname)
     
     #
-    # TODO: get s3 bucket folder for the project
+    # get a list of project filenames in s3 we need to merge
     #
     print("**Retrieving s3 bucketfolder**")
     sql = """
@@ -95,16 +96,63 @@ def lambda_handler(event, context):
     rows = datatier.retrieve_all_rows(dbConn, sql, [userid, projectname])
     if len(rows) == 0:
       raise Exception("no project docs found")
-    print("files:", rows) 
+    print("--Found", len(rows), "files in project") 
 
     #
-    # TODO: download each pdf at a time, merge it
+    # download all project files to tmp, collecting filenames
     #
+    tmpfiles = []
+    for row in rows:
+      bucketkey = row[0]
+      print("**DOWNLOADING '", bucketkey, "'**")
+      local_pdf_name = "/tmp/" + bucketkey
+      bucket.download_file(bucketkey, local_pdf_name)
+      tmpfiles.append(local_pdf_name)
+
+    #
+    # Merge the pdfs
+    #
+    print("**Merging pdfs**")
+    mergedTmp = "/tmp/merged-pdf.pdf"
+    merger = PdfWriter()
+    for pdf in tmpfiles:
+        merger.append(pdf)
+    merger.write(mergedTmp)
+    merger.close()
+    print("--Merge complete")
     
     #
-    # TODO: resulting merged pdf uploaded to s3
-    # in results folder
+    # Retrieve the bucketfolder of the project
     #
+    print("**Retrieving project bucketfolder**")
+    sql = """
+      SELECT bucketfolder FROM projects 
+                          JOIN users ON projects.userid = users.userid 
+      WHERE users.userid = %s AND projectname = %s;
+    """
+    rows = datatier.retrieve_one_row(dbConn, sql, [userid, projectname])
+    if len(rows) == 0:
+      raise Exception("no project docs found")
+    bucketfolder = rows[0]
+    print("--Bucketfolder:", bucketfolder)
+
+    #
+    # Generate s3 filename of merged pdf
+    #
+    print("**Generating s3 filename of merged pdf**")
+    mergedS3 = bucketfolder + "result/merged-pdf.pdf"
+    print("--S3 filename:", mergedS3)
+
+    #
+    # Upload the merged pdf to s3
+    #
+    print("**Uploading file to s3**")
+    bucket.upload_file(mergedTmp, 
+                       mergedS3, 
+                       ExtraArgs={
+                         'ACL': 'public-read',
+                         'ContentType': 'application/pdf'
+                       }) 
 
     #
     # TODO: return the s3 download url
