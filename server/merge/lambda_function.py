@@ -70,7 +70,7 @@ def lambda_handler(event, context):
     #
     # get a list of project filenames in s3 we need to merge
     #
-    print("**Retrieving s3 bucketfolder**")
+    print("**Retrieving s3 filenames**")
     sql = """
       SELECT filename FROM projectdocs 
       WHERE projectid = %s;
