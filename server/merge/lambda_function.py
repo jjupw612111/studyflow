@@ -106,7 +106,7 @@ def lambda_handler(event, context):
     for i, row in enumerate(rows):
       bucketkey = row[0]
       print("**DOWNLOADING '", bucketkey, "'**")
-      local_pdf_name = "/tmp/" + i + ".pdf"
+      local_pdf_name = "/tmp/" + str(i) + ".pdf"
       bucket.download_file(bucketkey, local_pdf_name)
       tmpfiles.append(local_pdf_name)
 
