@@ -543,7 +543,7 @@ def merge(baseurl):
     # Call web service
     #
     data = {"projectid": projectid}
-    api = '/merge'
+    api = '/merge/'
     url = baseurl + api
     res = web_service_post(url, data)
     
@@ -575,7 +575,7 @@ def merge(baseurl):
     outfile.write(bytes)
     print("Downloaded merged pdf and saved as '", local_filename, "'")
     
-  except:
+  except Exception as e:
     logging.error("**ERROR: merge() failed:")
     logging.error("url: " + url)
     logging.error(e)
