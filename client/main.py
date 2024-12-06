@@ -69,10 +69,10 @@ def prompt():
     print(">> Enter a command:")
     print("   0 => end")
     print("   1 => users")
-    print("   2 => upload")
-    print("   3 => create user")
-    print("   4 => projects")
-    print("   5 => ask chat")
+    print("   2 => create user")
+    print("   3 => projects")
+    print("   5 => upload")
+    print("   6 => ask chat")
 
     cmd = input()
 
@@ -560,11 +560,11 @@ try:
     if cmd == 1:
       users(baseurl)
     elif cmd == 2:
-      upload(baseurl)
-    elif cmd == 3:
       createUser(baseurl)
-    elif cmd == 4:
+    elif cmd == 3:
       projects(baseurl)
+    elif cmd == 4:
+      upload(baseurl)
     elif cmd == 5:
       askchat(baseurl)
     else:
