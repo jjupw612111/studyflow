@@ -72,6 +72,7 @@ def prompt():
     print("   2 => upload")
     print("   3 => create user")
     print("   4 => projects")
+    print("   5 => ask chat")
 
     cmd = input()
 
@@ -315,6 +316,76 @@ def projects(baseurl):
     logging.error(e)
     return
   
+
+  ############################################################
+#
+# ask chat
+#
+def askchat(baseurl):
+  """
+  Given the projectid and question,
+  Print answer from ChatGPT to question using messages with projectid
+
+  Parameters
+  ----------
+  baseurl: baseurl for web service
+
+  Returns
+  -------
+  nothing
+  """
+
+  try:
+    #
+    # Prompt user
+    #
+    print("Enter projectid>")
+    projectid = input()
+
+    print("Enter question>")
+    question = input()
+
+    #
+    # call the web service:
+    #
+    api = '/askchat'
+    url = baseurl + api + "/" + projectid
+    res = web_service_get(url)
+
+    #
+    # let's look at what we got back:
+    #
+    if res.status_code == 200: #success
+      pass
+    else:
+      # failed:
+      print("Failed with status code:", res.status_code)
+      print("url: " + url)
+      if res.status_code == 500:
+        # we'll have an error message
+        body = res.json()
+        print("Error message:", body)
+      #
+      return
+
+    #
+    # deserialize and extract projects:
+    #
+    response = res.json()
+    body = response["body"]
+
+    #print answer:
+    print(f"Answer from ChatGPT: {body}")
+
+    return
+
+  except Exception as e:
+    logging.error("**ERROR: users() failed:")
+    logging.error("url: " + url)
+    logging.error(e)
+    return
+  
+  
   
 ############################################################
 #
@@ -489,6 +560,8 @@ try:
       createUser(baseurl)
     elif cmd == 4:
       projects(baseurl)
+    elif cmd == 5:
+      askchat(baseurl)
     else:
       print("** Unknown command, try again...")
     #
