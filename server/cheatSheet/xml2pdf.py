@@ -19,7 +19,8 @@ def xml2pdf():
     #run os.mkdir("tmp/results") once in the beginning!
     #os.mkdir("tmp/results")
 
-    output_path = "tmp/Pompeii_Document.pdf"
+    output_path = "/tmp/cheatsheet.pdf"
     pdf.output(output_path)
 
     print("filed saved to:", output_path)
+    

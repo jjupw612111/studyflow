@@ -183,7 +183,7 @@ def lambda_handler(event, context):
     print("**DONE, returning generated text**")
 
     print("**uploading to tmp storage...")
-    #xml2pdf()
+    xml2pdf()
     
     return {
       'statusCode': 200,
