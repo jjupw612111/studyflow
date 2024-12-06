@@ -12,7 +12,7 @@ import datatier
 from configparser import ConfigParser
 from pypdf import PdfWriter
 
-# /merge/{userid}
+# /merge
 def lambda_handler(event, context):
   try:
     print("**STARTING**")
@@ -48,35 +48,18 @@ def lambda_handler(event, context):
     bucket = s3.Bucket(bucketname) 
 
     #
-    # get userid from path
-    #
-    print("**Accessing event/pathParameters**")
-
-    if "userid" in event:
-      userid = event["userid"]
-    elif "pathParameters" in event:
-      if "userid" in event["pathParameters"]:
-        userid = event["pathParameters"]["userid"]
-      else:
-        raise Exception("requires userid parameter in pathParameters")
-    else:
-        raise Exception("requires userid parameter in event") 
-    print("--userid:", userid)
-
-    #
     # get body of request:
-    # - projectname
+    # - projectid
     #
     print("**Accessing request body**") 
 
     if "body" not in event:
       raise Exception("event has no body") 
     body = json.loads(event["body"]) # parse the json 
-    if "projectname" not in body:
-      raise Exception("event has a body but no projectname")
-    projectname = body["projectname"]    
-    print("--projectname:", projectname)
-
+    if "projectid" not in body:
+      raise Exception("event has a body but no projectid")
+    projectid = body["projectid"]    
+    print("--projectid:", projectid)
 
     #
     # open connection to the database:
@@ -89,12 +72,10 @@ def lambda_handler(event, context):
     #
     print("**Retrieving s3 bucketfolder**")
     sql = """
-      SELECT filename FROM projects 
-                      JOIN users ON projects.userid = users.userid 
-                      JOIN projectdocs ON projects.projectid = projectdocs.projectid
-      WHERE users.userid = %s AND projectname = %s;
+      SELECT filename FROM projectdocs 
+      WHERE projectid = %s;
     """
-    rows = datatier.retrieve_all_rows(dbConn, sql, [userid, projectname])
+    rows = datatier.retrieve_all_rows(dbConn, sql, [projectid])
     if len(rows) == 0:
       raise Exception("no project docs found")
     print("--Found", len(rows), "files in project") 
