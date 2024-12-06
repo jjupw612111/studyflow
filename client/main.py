@@ -354,7 +354,7 @@ def askchat(baseurl):
     #
     api = '/askchat/'
     url = baseurl + api 
-    data = {"projectid":projectid, "question": question}
+    data = {"projectid":projectid, "question":question}
     #
     # call the web service:
     #
@@ -379,16 +379,15 @@ def askchat(baseurl):
     #
     # deserialize and extract projects:
     #
-    response = res.json()
-    body = response["body"]
-
+    response = res.json() #causes users failed
+    
     #print answer:
-    print(f"Answer from ChatGPT: {body}")
+    print(f"Answer from ChatGPT: {response}")
 
     return
 
   except Exception as e:
-    logging.error("**ERROR: users() failed:")
+    logging.error("**ERROR: askchat() failed:")
     logging.error("url: " + url)
     logging.error(e)
     return
