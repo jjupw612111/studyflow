@@ -1,5 +1,6 @@
-# study-helper
+# StudyFlow
 CS 310 Final Project Fall '24
+By Amy Liao, Juwon Park, and Siddharth Saha
 
 # organization
 /client:
