@@ -1,6 +1,5 @@
 import requests
 
-api_key = "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"
 
 def openai_sheet_helper(context, content, api_key, prompt_choice):
     # Define the OpenAI API endpoint
