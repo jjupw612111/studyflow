@@ -40,6 +40,3 @@ You are an assistant tasked with answering a student's question based solely on 
     gentext = completion.choices[0].message.content
     print(gentext)
     return gentext
-
-#test:
-#openai_sheet_helper("hi", "hello how are you", api_key)

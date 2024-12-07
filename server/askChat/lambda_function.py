@@ -38,7 +38,7 @@ def lambda_handler(event, context):
     #
   
     #
-    #TODO: Retrieve the list of topics and projectID from client
+    # Retrieve the list of topics and projectID from client
     #
     #
     # get body of request:
@@ -69,7 +69,7 @@ def lambda_handler(event, context):
     print("**Opening connection**")
     dbConn = datatier.get_dbConn(rds_endpoint, rds_portnum, rds_username, rds_pwd, rds_dbname)
     #
-    # TODO: check if projectid is in the db
+    #  check if projectid is in the db
     #
     print("**Checking if projectid exists**")
     sql = "SELECT * from projects WHERE projectid = %s;"
@@ -78,7 +78,7 @@ def lambda_handler(event, context):
       raise Exception("projectid not found in projects table")
     
     #
-    # TODO: add topcs to conversations
+    #  add topcs to conversations
     #
     print("**Adding topics to conversations**")
     sql = "INSERT INTO conversations (message, projectid,role,timestamp) VALUES (%s, %s, %s, NOW());"
@@ -88,7 +88,7 @@ def lambda_handler(event, context):
       raise Exception("failed to insert topics into conversations table")
     
     #
-    # TODO: select all messages from conversations table where projectID = projectid; gets content for chatgpt
+    #  select all messages from conversations table where projectID = projectid; gets content for chatgpt
     #
     print("**Retrieving data**")
     sql = "SELECT * from conversations WHERE projectid = %s"
@@ -101,12 +101,12 @@ def lambda_handler(event, context):
     print("content given to ChatGPT:",content)
 
     #
-    # TODO: send the messages to OpenAI to get a response
+    #  send the messages to OpenAI to get a response
     #
     print("**Sending data to OpenAI**")
     gen_text = openai_sheet_helper(topics, content, openai_key, 2) 
     #
-    # TODO: store response in conversations table
+    #  store response in conversations table
     #
     print("**Store response**")
     sql = "INSERT INTO conversations (message, projectid,role,timestamp) VALUES (%s, %s, %s, NOW());"
@@ -116,7 +116,7 @@ def lambda_handler(event, context):
 
 
     #
-    # TODO: find bucketfolder for projectid
+    #  find bucketfolder for projectid
     #
     print("**Find bucketfolder**")
     sql = "SELECT bucketfolder from projects WHERE projectid = %s;"
@@ -126,7 +126,7 @@ def lambda_handler(event, context):
       raise Exception("projectid not found in projects table")
     
     print("**Setup S3**")
-    # TODO: Upload that txt of response to s3
+    #  Upload that txt of response to s3
     s3_profile = 's3readwrite'
     boto3.setup_default_session(profile_name=s3_profile)
     
@@ -149,18 +149,6 @@ def lambda_handler(event, context):
                         'ContentType': 'text/plain'
                       })
 
-
-    # #hard-coded inputs for testing:
-    # with open('sample2.txt', 'r') as file:
-    #   content = file.readlines()
-    # with open('topics2.txt', 'r') as file:
-    #   topics_list = file.readlines()
-    # #
-    # # Call openai api with the provided topics, content, and key
-    # #
-    # gen_text = openai_sheet_helper(topics_list, content, openai_key, 2) #we need projectID to get the relevant text for the document 
-
-
     # 
     #
     # respond in an HTTP-like way, i.e. with a status
@@ -181,7 +169,3 @@ def lambda_handler(event, context):
       'statusCode': 500,
       'body': json.dumps(str(err))
     }
-
-
-#test
-lambda_handler("test","test")

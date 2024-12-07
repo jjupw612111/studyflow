@@ -49,6 +49,3 @@ def openai_sheet_helper(context, content, api_key, prompt_choice):
         # Handle API errors
         print(f"Error: {response.status_code} - {response.text}")
         return None
-
-#test
-#openai_sheet_helper("hi", "hello how are you", api_key)

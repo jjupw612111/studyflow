@@ -32,6 +32,3 @@ def openai_sheet_helper(topics, content, api_key):
     gentext = completion.choices[0].message.content
     print(gentext)
     return gentext
-
-#test:
-#openai_sheet_helper("hi", "hello how are you", api_key)
