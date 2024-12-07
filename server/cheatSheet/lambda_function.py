@@ -3,6 +3,7 @@
 # outputs a cheat sheet pdf
 #
 import json
+import base64
 import boto3
 import os
 import datatier
