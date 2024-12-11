@@ -1,1 +1,0 @@
-stuff for server goes in this folder
